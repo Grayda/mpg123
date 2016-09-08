@@ -3,13 +3,23 @@ var EventEmitter = require('events').EventEmitter;
 var inherits     = require('util').inherits;
 var es           = require('event-stream');
 var through      = require('through');
+var os           = require("os")
 
 inherits(MpgPlayer, EventEmitter);
 
 module.exports = MpgPlayer;
-function MpgPlayer() {
+function MpgPlayer(options) {
     var self = this;
-    this.child = spawn('mpg123', ['-R']);
+    if(os.platform() !== "win32") {
+      this.child = spawn('mpg123', ['-R']);
+    } else {
+      if(typeof options !== "undefined") {
+        this.child = spawn(options.directory + '\\mpg123.exe', ['-R'], { cwd: options.directory + "\\" });
+      } else {
+        this.child = spawn('mpg123.exe', ['-R']);
+      }
+    }
+
     this.stream = this.child.stdin,
     this.child.stdout
         .pipe(es.split())
